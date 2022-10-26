@@ -1,4 +1,6 @@
-using System;
+﻿using System;
+using System.Globalization;
+using System.Text;
 
 namespace PolynomialTask
 {
@@ -36,7 +38,19 @@ namespace PolynomialTask
         /// </example>
         public Polynomial(params double[]? coefficients)
         {
-            throw new NotImplementedException("You need to implement this method.");
+            if (coefficients is null)
+            {
+                throw new ArgumentNullException(nameof(coefficients), "Array of coefficients is null.");
+            }
+
+            if (coefficients.Length == 0)
+            {
+                throw new ArgumentException("Array of coefficients is empty.", nameof(coefficients));
+            }
+
+            // this.Degree = coefficients.Length - 1;
+            this.coefficients = new double[coefficients.Length];
+            Array.Copy(coefficients, this.coefficients, coefficients.Length);
         }
 
         /// <summary>
@@ -52,7 +66,7 @@ namespace PolynomialTask
         /// The degree of polynomial 3.3*x^2+2.001*x+1.21394 is equal 2;
         /// The degree of polynomial 0.16*x^5+0.05*x^4+0.004*x^3+3.313*x^2+0.2*x-1 is equal 5.
         /// </example>
-        public int Degree { get; }
+        public int Degree => this.coefficients.Length - 1;
 
         /// <summary>
         /// Returns polynomial coefficient at degree `index`.
@@ -67,8 +81,25 @@ namespace PolynomialTask
         /// </example>
         public double this[int index]
         {
-            get => throw new NotImplementedException("You need to implement this method.");
-            private set => throw new NotImplementedException("You need to implement this method.");
+            get
+            {
+                if (index < 0 & index > this.coefficients.Length)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(index), "Index is out of range.");
+                }
+
+                return this.coefficients[index];
+            }
+
+            private set
+            {
+                if (index < 0 & index > this.Degree)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(index), "Index is out of range.");
+                }
+
+                this.coefficients[index] = value;
+            }
         }
 
         /// <summary>
@@ -84,7 +115,37 @@ namespace PolynomialTask
         /// </example>
         public static Polynomial operator +(Polynomial? lhs, Polynomial? rhs)
         {
-            throw new NotImplementedException("You need to implement this method.");
+            if (rhs is null || lhs is null)
+            {
+                throw new ArgumentNullException(nameof(rhs), "rhs or lhs equals null.");
+            }
+
+            Polynomial result;
+            double[] temp;
+            if (rhs.Degree > lhs.Degree)
+            {
+                temp = new double[rhs.Degree + 1];
+                Array.Copy(rhs.coefficients, temp, rhs.Degree + 1);
+                result = new Polynomial(temp);
+
+                for (int i = 0; i <= lhs.Degree; i++)
+                {
+                    result[i] += lhs[i];
+                }
+
+                return result;
+            }
+
+            temp = new double[lhs.Degree + 1];
+            Array.Copy(lhs.coefficients, temp, lhs.Degree + 1);
+            result = new Polynomial(temp);
+
+            for (int i = 0; i <= rhs.Degree; i++)
+            {
+                result[i] += rhs[i];
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -100,7 +161,42 @@ namespace PolynomialTask
         /// </example>
         public static Polynomial operator -(Polynomial? lhs, Polynomial? rhs)
         {
-            throw new NotImplementedException("You need to implement this method.");
+            if (rhs is null || lhs is null)
+            {
+                throw new ArgumentNullException(nameof(rhs), "rhs or lhs equals null.");
+            }
+
+            Polynomial result;
+            double[] temp;
+            if (rhs.Degree > lhs.Degree)
+            { 
+                temp = new double[rhs.Degree + 1];
+                Array.Copy(rhs.coefficients, temp, rhs.Degree + 1);
+                result = new Polynomial(temp);
+
+                for (int i = 0; i <= lhs.Degree; i++)
+                {
+                    result[i] -= lhs[i];
+                }
+
+                return result;
+            }
+
+            temp = new double[lhs.coefficients.Length];
+            Array.Copy(lhs.coefficients, temp, lhs.Degree + 1);
+            result = new Polynomial(temp);
+           
+            for (int i = 0; i <= lhs.Degree; i++)
+            {
+                result.coefficients[i] *= -1;
+            }
+
+            for (int i = 0; i <= rhs.Degree; i++)
+            {
+                result[i] += rhs[i];
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -116,7 +212,21 @@ namespace PolynomialTask
         /// </example>
         public static Polynomial operator *(Polynomial? lhs, Polynomial? rhs)
         {
-            throw new NotImplementedException("You need to implement this method.");
+            if (rhs is null || lhs is null)
+            {
+                throw new ArgumentNullException(nameof(rhs), "rhs or lhs equals null.");
+            }
+
+            var result = new Polynomial(new double[rhs.Degree + lhs.Degree]);
+            for (int j = 0; j <= rhs.Degree; j++)
+            {
+                for (int i = 0; i <= lhs.Degree; i++)
+                {
+                    result[i + j] = lhs[i] * rhs[j];
+                }
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -134,7 +244,7 @@ namespace PolynomialTask
         /// </example>
         public static bool operator ==(Polynomial? lhs, Polynomial? rhs)
         {
-            throw new NotImplementedException("You need to implement this method.");
+            return Comparison(lhs, rhs);
         }
 
         /// <summary>
@@ -152,7 +262,7 @@ namespace PolynomialTask
         /// </example>
         public static bool operator !=(Polynomial? lhs, Polynomial? rhs)
         {
-            throw new NotImplementedException("You need to implement this method.");
+            return !(rhs == lhs);
         }
 
         /// <summary>
@@ -168,7 +278,7 @@ namespace PolynomialTask
         /// </example>
         public static Polynomial Add(Polynomial? lhs, Polynomial? rhs)
         {
-            throw new NotImplementedException("You need to implement this method.");
+            return rhs + lhs;
         }
 
         /// <summary>
@@ -184,7 +294,7 @@ namespace PolynomialTask
         /// </example>
         public static Polynomial Subtract(Polynomial? lhs, Polynomial? rhs)
         {
-            throw new NotImplementedException("You need to implement this method.");
+            return rhs - lhs;
         }
 
         /// <summary>
@@ -200,7 +310,7 @@ namespace PolynomialTask
         /// </example>
         public static Polynomial Multiply(Polynomial? lhs, Polynomial? rhs)
         {
-            throw new NotImplementedException("You need to implement this method.");
+           return lhs * rhs;
         }
 
         /// <summary>
@@ -211,7 +321,7 @@ namespace PolynomialTask
         /// <returns>true if polynomials are equal; otherwise, false.</returns>
         public override bool Equals(object? obj)
         {
-            throw new NotImplementedException("You need to implement this method.");
+            return this.Equals(obj);
         }
 
         /// <summary>
@@ -222,7 +332,7 @@ namespace PolynomialTask
         /// <returns>true if polynomials are equal; otherwise, false.</returns>
         public bool Equals(Polynomial? other)
         {
-            throw new NotImplementedException("You need to implement this method.");
+            return Comparison(this, other);
         }
 
         /// <summary>
@@ -231,7 +341,7 @@ namespace PolynomialTask
         /// <returns>A 32-bit signed integer hash code.</returns>
         public override int GetHashCode()
         {
-            throw new NotImplementedException("You need to implement this method.");
+            return this.Degree;
         }
 
         /// <summary>
@@ -241,11 +351,30 @@ namespace PolynomialTask
         /// <example>
         /// For polynomial with coefficients { 0.0001, -0.003, 0.31, -0.00731, 0.000402, 0.000300021 } -> "0.000300021*x^5+0.000402*x^4-0.00731*x^3+0.31*x^2-0.003*x+0.0001"
         /// For polynomial with coefficients { -1.1, -0.0000007, -0.0957, -2.2242, 10.0991, -14.498, -0.2046, 0.0000012, -0.704 } -> "-0.704*x^8-0.2046*x^6-14.498*x^5+10.0991*x^4-2.2242*x^3-0.0957*x^2-1.1"
-        /// For polynomial with coefficients { -1, 0.2, 3.313, 0.004, 0.05, 0.16 } -> "0.16*x^5+0.05*x^4+0.004*x^3+3.313*x^2+0.2*x-1"
+        /// For polynomial with coefficients { -1, 0.2, 3.313, 0.004, 0.05, 0.16 } -> "0.16*x^5+0.05*x^4+0.004*x^3+3.313*x^2+0.2*x-1".
         /// </example>
         public override string ToString()
         {
-            throw new NotImplementedException("You need to implement this method.");
+            var str = new StringBuilder();
+            str.Append(this[0]);
+            if (this.Degree == 0)
+            {
+                return str.ToString().ToString(CultureInfo.InvariantCulture);
+            }
+
+            str.Insert(1, this[1] + "*x+");
+
+            if (this.Degree == 1)
+            {
+                return str.ToString().ToString(CultureInfo.InvariantCulture);
+            }
+
+            for (int i = 2; i <= this.Degree; i++)
+            {
+                str.Insert(1, this[i] + $"*x^{i}+");
+            }
+
+            return str.ToString().ToString(CultureInfo.InvariantCulture);
         }
 
         /// <summary>
@@ -259,7 +388,13 @@ namespace PolynomialTask
         /// </example>
         public double CalculateValue(double x)
         {
-            throw new NotImplementedException("You need to implement this method.");
+            double value = 0;
+            for (int i = 0; i <= this.Degree; i++)
+            {
+                value = this.coefficients[i] * Math.Pow(x, i);
+            }
+
+            return value;
         }
 
         /// <summary>
@@ -268,25 +403,52 @@ namespace PolynomialTask
         /// <returns>Coefficients of the polynomial.</returns>
         public double[] GetCoefficients()
         {
-            throw new NotImplementedException("You need to implement this method.");
+            double[] result = new double[this.Degree + 1];
+            Array.Copy(this.coefficients, result, this.Degree + 1);
+            return result;
         }
 
         /// <summary>
         /// Creates a shallow copy.
         /// </summary>
         /// <returns>A shallow copy.</returns>
-        public Polynomial Clone()
-        {
-            throw new NotImplementedException("You need to implement this method.");
-        }
+        public Polynomial Clone() => (Polynomial)this.MemberwiseClone();
 
-        /// <summary>
-        /// Creates a shallow copy.
-        /// </summary>
-        /// <returns>A shallow copy.</returns>
+    /// <summary>
+    /// Creates a shallow copy.
+    /// </summary>
+    /// <returns>A shallow copy.</returns>
         object ICloneable.Clone()
         {
-            throw new NotImplementedException("You need to implement this method.");
+            return this.Clone();
+        }
+
+        private static bool Comparison(Polynomial? lhs, Polynomial? rhs)
+        {
+            if (lhs is null && rhs is null)
+            {
+                return true;
+            }
+
+            if (rhs is null || lhs is null)
+            {
+                return false;
+            }
+
+            if (rhs.Degree != lhs.Degree)
+            {
+                return false;
+            }
+
+            for (int i = 0; i <= rhs.Degree; i++)
+            {
+                if (Math.Abs(rhs[i] - lhs[i]) > AppSettings.Epsilon)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }
